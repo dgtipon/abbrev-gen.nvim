@@ -28,9 +28,11 @@ Inspired by vim-abolish but heavily extended for modern Markdown workflows:
     })
   end,
 }
+```
 
 # Configuration
 
+```
 require("abbrev-gen").setup({
   enable_keymaps = true,        -- <leader>1, <leader>2, <leader>p, <leader>a
   enable_escape = true,         -- type abbrev> then punctuation to escape expansion
@@ -40,14 +42,11 @@ require("abbrev-gen").setup({
 
 # Keymaps (Markdown only)
 
-```
 . <leader>1 → list all one-letter roots
 . <leader>2 → list all two-letter roots
 . <leader>p → list all prefixes
 . <leader>a → show breakdown of word under cursor
 . Type any abbreviation + Space, ,, ., !, ?, etc. → auto-expands
-
-```
 
 # How to add new abbreviations
 
