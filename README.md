@@ -36,17 +36,23 @@ require("abbrev-gen").setup({
   enable_escape = true,         -- type abbrev> then punctuation to escape expansion
   register_cmp_source = true,   -- auto-registers the cmp source
 })
+```
 
 # Keymaps (Markdown only)
+
+```
 . <leader>1 → list all one-letter roots
 . <leader>2 → list all two-letter roots
 . <leader>p → list all prefixes
 . <leader>a → show breakdown of word under cursor
 . Type any abbreviation + Space, ,, ., !, ?, etc. → auto-expands
 
+```
+
 # How to add new abbreviations
+
 Edit data/abolish_obj_data.json and send a PR — happy to merge!
 
 # License
+
 MIT
-```
