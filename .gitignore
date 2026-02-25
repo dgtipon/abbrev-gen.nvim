@@ -1,0 +1,5 @@
+# Common Neovim plugin ignores
+*.log
+.DS_Store
+tags
+EOF
