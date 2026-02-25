@@ -1,9 +1,5 @@
 # abbrev-gen.nvim
 
-cat > README.md << 'EOF'
-
-# abbrev-gen.nvim
-
 Smart, JSON-driven abbreviation expander for Markdown files in Neovim.
 
 Inspired by vim-abolish but heavily extended for modern Markdown workflows:
