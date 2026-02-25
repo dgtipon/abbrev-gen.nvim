@@ -42,11 +42,13 @@ require("abbrev-gen").setup({
 
 # Keymaps (Markdown only)
 
--- <leader>1 → list all one-letter roots
--- <leader>2 → list all two-letter roots
--- <leader>p → list all prefixes
--- <leader>a → show breakdown of word under cursor
--- Type any abbreviation + Space, ,, ., !, ?, etc. → auto-expands
+```
+<leader>1 → list all one-letter roots
+<leader>2 → list all two-letter roots
+<leader>p → list all prefixes
+<leader>a → show breakdown of word under cursor
+Type any abbreviation + Space, ,, ., !, ?, etc. → auto-expands
+```
 
 # How to add new abbreviations
 
