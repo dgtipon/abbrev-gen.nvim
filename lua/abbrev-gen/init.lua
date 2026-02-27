@@ -515,16 +515,19 @@ function M.setup(opts)
 				-- Internal function generator for punctuation mappings with escape logic
 				local function confirm_or_escape(punct)
 					return cmp.mapping(function(fallback)
-						-- vim.notify("Start of mapping for '" .. punct .. "'. Menu visible? " .. tostring(cmp.visible()), vim.log.levels.INFO) -- Debug: Menu state at entry
+						vim.notify(
+							"Start of mapping for '" .. punct .. "'. Menu visible? " .. tostring(cmp.visible()),
+							vim.log.levels.INFO
+						) -- Debug: Menu state at entry
 
 						local line = vim.api.nvim_get_current_line()
 						local col = vim.fn.col(".") - 1
 						local before_cursor = line:sub(1, col)
 						local word, escapes = before_cursor:match("(%w+)(>+)$")
-						-- vim.notify("Before cursor: " .. before_cursor, vim.log.levels.INFO) -- Debug: Exact text before key
+						vim.notify("Before cursor: " .. before_cursor, vim.log.levels.INFO) -- Debug: Exact text before key
 
 						if word and #escapes >= 1 and M.try_expand(word) then
-							-- vim.notify("Escape branch: Word=" .. word .. ", Escapes=" .. #escapes, vim.log.levels.INFO)
+							vim.notify("Escape branch: Word=" .. word .. ", Escapes=" .. #escapes, vim.log.levels.INFO)
 							cmp.close()
 							vim.api.nvim_feedkeys(
 								vim.api.nvim_replace_termcodes("<BS>" .. punct, true, true, true),
@@ -535,7 +538,11 @@ function M.setup(opts)
 						end
 
 						if cmp.visible() then
-							-- vim.notify("Confirm branch: Menu visible, confirming. Selected? " .. tostring(cmp.get_selected_entry() ~= nil), vim.log.levels.INFO)
+							vim.notify(
+								"Confirm branch: Menu visible, confirming. Selected? "
+									.. tostring(cmp.get_selected_entry() ~= nil),
+								vim.log.levels.INFO
+							)
 							cmp.confirm({
 								select = true, -- Auto-select first item for expansion; change to false if you prefer manual <C-j>
 							})
@@ -549,7 +556,7 @@ function M.setup(opts)
 							return
 						end
 
-						-- vim.notify("Fallback branch: Just inserting " .. punct, vim.log.levels.INFO)
+						vim.notify("Fallback branch: Just inserting " .. punct, vim.log.levels.INFO)
 						fallback() -- Use fallback to insert punct literally
 					end, { "i", "s" })
 				end

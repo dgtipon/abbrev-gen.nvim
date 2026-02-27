@@ -74,12 +74,22 @@ source.get_trigger_characters = function()
 end
 
 -- Availability check: Only in Markdown buffers
-source.is_available = function()
-	return vim.bo.filetype == "markdown"
+function source.is_available()
+	-- vim.notify("🔍 abbrev-gen.is_available() called", vim.log.levels.INFO)
+	return true
 end
 
 -- Core completion logic: Called by cmp on trigger
-source.complete = function(self, params, callback)
+function source.complete(self, params, callback)
+	-- vim.notify("✍️  abbrev-gen.complete() called - prefix: '" .. (params.prefix or "") .. "'", vim.log.levels.INFO)
+	-- Temporary test item so we force a visible popup
+
+	local input = params.context.cursor_before_line:match("%w+$") or ""
+	-- vim.notify("Abbrev source complete triggered with input: '" .. input .. "'", vim.log.levels.INFO)
+	-- vim.notify(
+	-- 	"Abbrev CMP source triggered with input: '" .. (params.context.cursor_before_line:match("%w+$") or "nil") .. "'",
+	-- 	vim.log.levels.INFO
+	-- )
 	local abbrev_gen = require("abbrev-gen") -- Reference your module
 	local input = params.context.cursor_before_line:match("%w+$") -- Word before cursor
 	if not input or #input < 1 then -- Allow single-letter abbreviations
