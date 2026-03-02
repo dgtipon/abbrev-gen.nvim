@@ -251,7 +251,7 @@ if vim.bo.filetype == "markdown" then
 	setup_markdown_keymaps()
 end
 
--- Expansion handler (async to avoid textlock issues)
+-- Manager controling try_expand (async to avoid textlock issues)
 M.expand_abbrev = function(trigger_char)
 	trigger_char = trigger_char or " "
 	local pos = vim.api.nvim_win_get_cursor(0)
@@ -259,7 +259,21 @@ M.expand_abbrev = function(trigger_char)
 	local col = pos[2]
 	local word_before = line:sub(1, col):match("%w+$")
 
-	-- vim.notify(vim.api.nvim_get_current_line(), vim.log.levels.INFO)
+	if not line then
+		return trigger_char
+	end
+
+	local last_char = string.sub(line, -1)
+	-- vim.notify("last_char[" .. last_char .. "]", vim.log.levels.INFO)
+
+	if last_char == ">" then
+		-- vim.notify("Escape", vim.log.levels.INFO)
+		local new_line = line:sub(1, -2) .. trigger_char
+		-- vim.notify("new_line[" .. new_line .. "]", vim.log.levels.INFO)
+		vim.schedule(function()
+			vim.api.nvim_set_current_line(new_line)
+		end)
+	end
 
 	if not word_before then
 		return trigger_char
