@@ -1,4 +1,7 @@
 # abbrev-gen.nvim
+  
+
+
 
 Smart, JSON-driven abbreviation expander for Markdown files in Neovim.
 
