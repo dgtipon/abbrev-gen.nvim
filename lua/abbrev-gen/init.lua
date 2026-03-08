@@ -10,8 +10,11 @@ M.abbrevs = {}
 M.roots = {}
 
 -- Load and parse JSON once on plugin init (expanded abbrev -> word)
-local function load_json_data()
-	local json_path = get_plugin_root() .. "/data/abolish_obj_data.json"
+local function load_json_data(json_path)
+	if not json_path then
+		json_path = get_plugin_root() .. "/data/abolish_obj_data.json"
+	end
+
 	local lines = vim.fn.readfile(json_path)
 	if #lines == 0 then
 		vim.notify("abolish_obj_data.json not found or empty", vim.log.levels.ERROR)
@@ -135,9 +138,6 @@ local function load_json_data()
 	end
 end
 
--- Call on load
-load_json_data()
-
 -- Optional: User command to reload if JSON changes
 vim.api.nvim_create_user_command("ReloadAbbrevJson", load_json_data, { desc = "Reload abbrev data from JSON" })
 
@@ -232,7 +232,6 @@ end
 
 -- Setup buffer-local mapping for Markdown files
 local function setup_markdown_keymaps()
-	--	vim.notify("Keymaps set for Markdown buffer", vim.log.levels.INFO)
 	local triggers = { " ", ",", ";", ":", ".", "!", "?", "<" }
 	for _, trigger in ipairs(triggers) do
 		vim.keymap.set("i", trigger, function()
@@ -264,13 +263,9 @@ M.expand_abbrev = function(trigger_char)
 	end
 
 	local last_char = string.sub(line, -1)
-	-- vim.notify("last_char[" .. last_char .. "]", vim.log.levels.INFO)
 
-	-- vim.notify("Expand global_enable_escape=" .. tostring(vim.g.global_enable_escape), vim.log.levels.INFO)
 	if last_char == ">" and vim.g.global_enable_escape then
-		-- vim.notify("Escape", vim.log.levels.INFO)
 		local new_line = line:sub(1, -2) .. trigger_char
-		-- vim.notify("new_line[" .. new_line .. "]", vim.log.levels.INFO)
 		vim.schedule(function()
 			vim.api.nvim_set_current_line(new_line)
 		end)
@@ -451,8 +446,7 @@ function M.setup(opts)
 	opts.enable_escape = opts.enable_escape ~= false
 	vim.g.global_enable_escape = opts.enable_escape
 	opts.register_cmp_source = opts.register_cmp_source ~= false
-	local json_path = opts.json_path or vim.fn.stdpath("config") .. "/abolish_obj_data.json"
-	load_json_data(json_path) -- Call your loading function (extract it if not already a separate local func)
+	load_json_data(opts.json_path) -- Load with user-specified path or plugin default
 
 	if opts.enable_keymaps then
 		vim.api.nvim_create_autocmd("FileType", {
