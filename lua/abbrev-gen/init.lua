@@ -266,7 +266,8 @@ M.expand_abbrev = function(trigger_char)
 	local last_char = string.sub(line, -1)
 	-- vim.notify("last_char[" .. last_char .. "]", vim.log.levels.INFO)
 
-	if last_char == ">" then
+	-- vim.notify("Expand global_enable_escape=" .. tostring(vim.g.global_enable_escape), vim.log.levels.INFO)
+	if last_char == ">" and vim.g.global_enable_escape then
 		-- vim.notify("Escape", vim.log.levels.INFO)
 		local new_line = line:sub(1, -2) .. trigger_char
 		-- vim.notify("new_line[" .. new_line .. "]", vim.log.levels.INFO)
@@ -448,6 +449,7 @@ function M.setup(opts)
 	opts = opts or {}
 	opts.enable_keymaps = opts.enable_keymaps ~= false
 	opts.enable_escape = opts.enable_escape ~= false
+	vim.g.global_enable_escape = opts.enable_escape
 	opts.register_cmp_source = opts.register_cmp_source ~= false
 	local json_path = opts.json_path or vim.fn.stdpath("config") .. "/abolish_obj_data.json"
 	load_json_data(json_path) -- Call your loading function (extract it if not already a separate local func)
@@ -517,82 +519,6 @@ function M.setup(opts)
 				)
 				keymap.set("n", "<leader>p", M.list_prefixes, { buffer = bufnr, desc = "Show all prefix abbrevs" })
 			end,
-		})
-	end
-
-	if opts.enable_escape then
-		vim.api.nvim_create_autocmd("User", {
-			pattern = "LazyDone", -- Runs after Lazy finishes loading all plugins
-			callback = function()
-				local cmp = require("cmp")
-
-				-- Internal function generator for punctuation mappings with escape logic
-				local function confirm_or_escape(punct)
-					return cmp.mapping(function(fallback)
-						vim.notify(
-							"Start of mapping for '" .. punct .. "'. Menu visible? " .. tostring(cmp.visible()),
-							vim.log.levels.INFO
-						) -- Debug: Menu state at entry
-
-						local line = vim.api.nvim_get_current_line()
-						local col = vim.fn.col(".") - 1
-						local before_cursor = line:sub(1, col)
-						local word, escapes = before_cursor:match("(%w+)(>+)$")
-						vim.notify("Before cursor: " .. before_cursor, vim.log.levels.INFO) -- Debug: Exact text before key
-
-						if word and #escapes >= 1 and M.try_expand(word) then
-							vim.notify("Escape branch: Word=" .. word .. ", Escapes=" .. #escapes, vim.log.levels.INFO)
-							cmp.close()
-							vim.api.nvim_feedkeys(
-								vim.api.nvim_replace_termcodes("<BS>" .. punct, true, true, true),
-								"n",
-								false
-							)
-							return
-						end
-
-						if cmp.visible() then
-							vim.notify(
-								"Confirm branch: Menu visible, confirming. Selected? "
-									.. tostring(cmp.get_selected_entry() ~= nil),
-								vim.log.levels.INFO
-							)
-							cmp.confirm({
-								select = true, -- Auto-select first item for expansion; change to false if you prefer manual <C-j>
-							})
-							vim.schedule(function()
-								vim.api.nvim_feedkeys(
-									vim.api.nvim_replace_termcodes(punct, true, true, true),
-									"n",
-									false
-								)
-							end)
-							return
-						end
-
-						vim.notify("Fallback branch: Just inserting " .. punct, vim.log.levels.INFO)
-						fallback() -- Use fallback to insert punct literally
-					end, { "i", "s" })
-				end
-
-				-- Get table of escape-aware mappings
-				local escape_mappings = {
-					["."] = confirm_or_escape("."),
-					[","] = confirm_or_escape(","),
-					[";"] = confirm_or_escape(";"),
-					[":"] = confirm_or_escape(":"),
-					["!"] = confirm_or_escape("!"),
-					["?"] = confirm_or_escape("?"),
-					["<Space>"] = confirm_or_escape(" "),
-					-- Add more if needed, e.g., ['"'] = confirm_or_escape('"'),
-				}
-
-				-- Dynamically update cmp config to add mappings (global, but Markdown-only logic inside)
-				local current_config = cmp.get_config()
-				current_config.mapping = vim.tbl_extend("force", current_config.mapping or {}, escape_mappings)
-				cmp.setup(current_config)
-			end,
-			once = true, -- Run only once
 		})
 	end
 
