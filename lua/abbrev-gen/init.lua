@@ -11,19 +11,62 @@ M.roots = {}
 
 -- Load and parse JSON once on plugin init (expanded abbrev -> word)
 local function load_json_data(json_path)
-	if not json_path then
-		json_path = get_plugin_root() .. "/data/abolish_obj_data.json"
+	local default_path = get_plugin_root() .. "/data/abolish_obj_data.json"
+	local is_custom = json_path ~= nil
+	local current_path = json_path or default_path
+
+	local function try_load(path)
+		local lines = vim.fn.readfile(path)
+		if #lines == 0 then
+			return nil, "File not found or empty: " .. path
+		end
+		local json_str = table.concat(lines, "\n")
+		local ok, data = pcall(vim.fn.json_decode, json_str)
+		if not ok then
+			return nil, "Invalid JSON syntax: " .. tostring(data)
+		end
+		return data, nil
 	end
 
-	local lines = vim.fn.readfile(json_path)
-	if #lines == 0 then
-		vim.notify("abolish_obj_data.json not found or empty", vim.log.levels.ERROR)
-		return {}
+	local data, err = try_load(current_path)
+	if err then
+		if is_custom then
+			vim.notify(
+				"Error loading custom abolish_obj_data.json ("
+					.. current_path
+					.. "): "
+					.. err
+					.. ". Falling back to plugin default.",
+				vim.log.levels.ERROR
+			)
+			current_path = default_path
+			data, err = try_load(current_path)
+			if err then
+				vim.notify(
+					"Error loading default abolish_obj_data.json ("
+						.. current_path
+						.. "): "
+						.. err
+						.. ". Plugin will use empty data.",
+					vim.log.levels.ERROR
+				)
+				return {}
+			end
+		else
+			vim.notify(
+				"Error loading default abolish_obj_data.json ("
+					.. current_path
+					.. "): "
+					.. err
+					.. ". Plugin will use empty data.",
+				vim.log.levels.ERROR
+			)
+			return {}
+		end
 	end
-	local json_str = table.concat(lines, "\n")
-	local data = vim.fn.json_decode(json_str)
+
 	M.json_data = data.roots or data -- Export raw JSON for suffix lookups in completion
-	-- data.roots or data allows extractiong from either abolish_obj_data.json or abolish_data.json
+	-- data.roots or data allows extraction from either abolish_obj_data.json or abolish_data.json
 
 	-- Load prefixes (simple loop, no complications)
 	M.prefixes = {}
