@@ -15,6 +15,8 @@ local function load_json_data(json_path)
 	local is_custom = json_path ~= nil
 	local current_path = json_path or default_path
 
+	vim.notify("current_path=" .. current_path, vim.log.levels.INFO)
+
 	local function try_load(path)
 		local lines = vim.fn.readfile(path)
 		if #lines == 0 then
