@@ -10,17 +10,65 @@ M.abbrevs = {}
 M.roots = {}
 
 -- Load and parse JSON once on plugin init (expanded abbrev -> word)
-local function load_json_data()
-	local json_path = get_plugin_root() .. "/data/abolish_obj_data.json"
-	local lines = vim.fn.readfile(json_path)
-	if #lines == 0 then
-		vim.notify("abolish_obj_data.json not found or empty", vim.log.levels.ERROR)
-		return {}
+local function load_json_data(json_path)
+	local default_path = get_plugin_root() .. "/data/abolish_obj_data.json"
+	local is_custom = json_path ~= nil
+	local current_path = json_path or default_path
+
+	vim.notify("current_path=" .. current_path, vim.log.levels.INFO)
+
+	local function try_load(path)
+		local lines = vim.fn.readfile(path)
+		if #lines == 0 then
+			return nil, "File not found or empty: " .. path
+		end
+		local json_str = table.concat(lines, "\n")
+		local ok, data = pcall(vim.fn.json_decode, json_str)
+		if not ok then
+			return nil, "Invalid JSON syntax: " .. tostring(data)
+		end
+		return data, nil
 	end
-	local json_str = table.concat(lines, "\n")
-	local data = vim.fn.json_decode(json_str)
+
+	local data, err = try_load(current_path)
+	if err then
+		if is_custom then
+			vim.notify(
+				"Error loading custom abolish_obj_data.json ("
+					.. current_path
+					.. "): "
+					.. err
+					.. ". Falling back to plugin default.",
+				vim.log.levels.ERROR
+			)
+			current_path = default_path
+			data, err = try_load(current_path)
+			if err then
+				vim.notify(
+					"Error loading default abolish_obj_data.json ("
+						.. current_path
+						.. "): "
+						.. err
+						.. ". Plugin will use empty data.",
+					vim.log.levels.ERROR
+				)
+				return {}
+			end
+		else
+			vim.notify(
+				"Error loading default abolish_obj_data.json ("
+					.. current_path
+					.. "): "
+					.. err
+					.. ". Plugin will use empty data.",
+				vim.log.levels.ERROR
+			)
+			return {}
+		end
+	end
+
 	M.json_data = data.roots or data -- Export raw JSON for suffix lookups in completion
-	-- data.roots or data allows extractiong from either abolish_obj_data.json or abolish_data.json
+	-- data.roots or data allows extraction from either abolish_obj_data.json or abolish_data.json
 
 	-- Load prefixes (simple loop, no complications)
 	M.prefixes = {}
@@ -135,9 +183,6 @@ local function load_json_data()
 	end
 end
 
--- Call on load
-load_json_data()
-
 -- Optional: User command to reload if JSON changes
 vim.api.nvim_create_user_command("ReloadAbbrevJson", load_json_data, { desc = "Reload abbrev data from JSON" })
 
@@ -232,7 +277,6 @@ end
 
 -- Setup buffer-local mapping for Markdown files
 local function setup_markdown_keymaps()
-	--	vim.notify("Keymaps set for Markdown buffer", vim.log.levels.INFO)
 	local triggers = { " ", ",", ";", ":", ".", "!", "?", "<" }
 	for _, trigger in ipairs(triggers) do
 		vim.keymap.set("i", trigger, function()
@@ -251,7 +295,7 @@ if vim.bo.filetype == "markdown" then
 	setup_markdown_keymaps()
 end
 
--- Expansion handler (async to avoid textlock issues)
+-- Manager controling try_expand (async to avoid textlock issues)
 M.expand_abbrev = function(trigger_char)
 	trigger_char = trigger_char or " "
 	local pos = vim.api.nvim_win_get_cursor(0)
@@ -259,7 +303,18 @@ M.expand_abbrev = function(trigger_char)
 	local col = pos[2]
 	local word_before = line:sub(1, col):match("%w+$")
 
-	-- vim.notify(vim.api.nvim_get_current_line(), vim.log.levels.INFO)
+	if not line then
+		return trigger_char
+	end
+
+	local last_char = string.sub(line, -1)
+
+	if last_char == ">" and vim.g.global_enable_escape then
+		local new_line = line:sub(1, -2) .. trigger_char
+		vim.schedule(function()
+			vim.api.nvim_set_current_line(new_line)
+		end)
+	end
 
 	if not word_before then
 		return trigger_char
@@ -434,9 +489,9 @@ function M.setup(opts)
 	opts = opts or {}
 	opts.enable_keymaps = opts.enable_keymaps ~= false
 	opts.enable_escape = opts.enable_escape ~= false
+	vim.g.global_enable_escape = opts.enable_escape
 	opts.register_cmp_source = opts.register_cmp_source ~= false
-	local json_path = opts.json_path or vim.fn.stdpath("config") .. "/abolish_obj_data.json"
-	load_json_data(json_path) -- Call your loading function (extract it if not already a separate local func)
+	load_json_data(opts.json_path) -- Load with user-specified path or plugin default
 
 	if opts.enable_keymaps then
 		vim.api.nvim_create_autocmd("FileType", {
@@ -504,6 +559,13 @@ function M.setup(opts)
 				keymap.set("n", "<leader>p", M.list_prefixes, { buffer = bufnr, desc = "Show all prefix abbrevs" })
 			end,
 		})
+	end
+
+	if opts.register_cmp_source then
+		local ok, cmp = pcall(require, "cmp")
+		if ok then
+			cmp.register_source("abbrev_gen", require("abbrev-gen.source").new())
+		end
 	end
 end
 return M
