@@ -1,8 +1,11 @@
 # abbrev-gen.nvim
+  
+
+
 
 Smart, JSON-driven abbreviation expander for Markdown files in Neovim.
 
-Inspired by vim-abolish but heavily extended for modern Markdown workflows:
+Inspired by Tim Pope's vim-abolish but heavily extended for modern Markdown workflows:
 
 - Root + suffix system (`abn` → abandon, `abns` → abandons, `abng` → abandoning…)
 - Prefix support (`rEaca` → reactivate, `uNaca` → unactivate…)
