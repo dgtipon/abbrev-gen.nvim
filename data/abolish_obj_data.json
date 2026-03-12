@@ -17512,6 +17512,40 @@
         "s",
         "d",
         "g",
+        "b",
+        "bs",
+        "by",
+        "bt",
+        "bts",
+        "r",
+        "rs",
+        "m",
+        "ms"
+      ],
+      "root_word": "improv",
+      "suffix_words": [
+        "e",
+        "es",
+        "ed",
+        "ing",
+        "able",
+        "ables",
+        "ably",
+        "ability",
+        "abilities",
+        "er",
+        "ers",
+        "ement",
+        "ements"
+      ]
+    },
+    {
+      "root_abbrev": "iqs",
+      "suffix_abbrevs": [
+        "",
+        "s",
+        "d",
+        "g",
         "n",
         "ns",
         "nd",
@@ -21628,7 +21662,7 @@
       ]
     },
     {
-      "root_abbrev": "myf",
+      "root_abbrev": "mf",
       "suffix_abbrevs": [""],
       "root_word": "myself",
       "suffix_words": [""]
@@ -29578,7 +29612,7 @@
         "es",
         "ed",
         "ing",
-        "it",
+        "ity",
         "ities",
         "itize",
         "itizes",
@@ -34437,7 +34471,7 @@
       "suffix_words": [""]
     },
     {
-      "root_abbrev": "uz",
+      "root_abbrev": "uu",
       "suffix_abbrevs": ["", "s", "d", "g", "b", "bs", "by", "bt", "bts"],
       "root_word": "underst",
       "suffix_words": [
@@ -34566,7 +34600,7 @@
       "root_abbrev": "u",
       "suffix_abbrevs": [
         "",
-        "s",
+        "z",
         "d",
         "g",
         "b",
@@ -35692,7 +35726,6 @@
       "root_abbrev": "wm",
       "suffix_abbrevs": [
         "",
-        "s",
         "d",
         "g",
         "z",
@@ -35708,7 +35741,6 @@
       "root_word": "woman",
       "suffix_words": [
         "",
-        "s",
         "ed",
         "ing",
         "ize",
