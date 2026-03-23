@@ -501,45 +501,47 @@ function M.setup(opts)
 				keymap.set("n", "<leader>a", function()
 					local word = vim.fn.expand("<cword>"):lower()
 					local result = M.try_reverse(word)
+					local lines = ""
 					if result then
 						-- Create a scratch buffer for the popup
-						local buf = vim.api.nvim_create_buf(false, true)
-						local lines = { "Abbrev breakdown: " .. result } -- Single line for simplicity
-						vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
-						vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
-						vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-						vim.api.nvim_buf_set_option(buf, "modifiable", false)
-
-						-- Calculate dimensions: Small popup, auto-width based on content
-						local max_line_len = math.max(30, #lines[1] + 4) -- Min 30 cols, plus padding
-						local width = math.min(max_line_len, math.floor(vim.o.columns * 0.6))
-						local height = #lines + 2 -- Content + padding
-						local popup_opts = {
-							relative = "editor",
-							width = width,
-							height = height,
-							col = (vim.o.columns - width) / 2,
-							row = (vim.o.lines - height) / 2,
-							style = "minimal",
-							border = "rounded",
-							title = "Abbrev Breakdown",
-							title_pos = "center",
-						}
-
-						-- Open the floating window
-						local win = vim.api.nvim_open_win(buf, true, popup_opts)
-						vim.api.nvim_win_set_option(win, "winhl", "NormalFloat:Normal,FloatBorder:Normal")
-
-						-- Keymaps to close (Esc or q)
-						vim.keymap.set("n", "<Esc>", function()
-							vim.api.nvim_win_close(win, true)
-						end, { buffer = buf, silent = true })
-						vim.keymap.set("n", "q", function()
-							vim.api.nvim_win_close(win, true)
-						end, { buffer = buf, silent = true })
+						lines = { result } -- Single line for simplicity
 					else
-						vim.notify("No abbrev found", vim.log.levels.WARN)
+						lines = { "    No abbreviation found" }
 					end
+
+					local buf = vim.api.nvim_create_buf(false, true)
+					vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+					vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+					vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+					vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+					-- Calculate dimensions: Small popup, auto-width based on content
+					local max_line_len = math.max(30, #lines[1] + 4) -- Min 30 cols, plus padding
+					local width = math.min(max_line_len, math.floor(vim.o.columns * 0.6))
+					local height = #lines + 2 -- Content + padding
+					local popup_opts = {
+						relative = "editor",
+						width = width,
+						height = height,
+						col = (vim.o.columns - width) / 2,
+						row = (vim.o.lines - height) / 2,
+						style = "minimal",
+						border = "rounded",
+						title = "Abbrev Breakdown",
+						title_pos = "center",
+					}
+
+					-- Open the floating window
+					local win = vim.api.nvim_open_win(buf, true, popup_opts)
+					vim.api.nvim_win_set_option(win, "winhl", "NormalFloat:Normal,FloatBorder:Normal")
+
+					-- Keymaps to close (Esc or q)
+					vim.keymap.set("n", "<Esc>", function()
+						vim.api.nvim_win_close(win, true)
+					end, { buffer = buf, silent = true })
+					vim.keymap.set("n", "q", function()
+						vim.api.nvim_win_close(win, true)
+					end, { buffer = buf, silent = true })
 				end, { buffer = bufnr, desc = "Show abbrev breakdown for word" })
 
 				keymap.set(
