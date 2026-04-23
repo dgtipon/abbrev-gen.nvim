@@ -181,6 +181,56 @@ local function load_json_data(json_path)
 	end
 end
 
+-- Helper to create a centered floating popup with the given lines and title
+-- Returns the window handle so callers can add extra logic if needed
+local function create_list_popup(lines, title)
+	if #lines == 0 then
+		vim.notify("No items to display", vim.log.levels.WARN)
+		return nil
+	end
+
+	-- Create scratch buffer
+	local buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+	vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+	-- Dynamic sizing
+	local max_line_len = 0
+	for _, line in ipairs(lines) do
+		max_line_len = math.max(max_line_len, #line)
+	end
+	local width = math.min(math.max(40, max_line_len + 4), math.floor(vim.o.columns * 0.6))
+	local height = math.min(#lines + 2, math.floor(vim.o.lines * 0.4))
+
+	local opts = {
+		relative = "editor",
+		width = width,
+		height = height,
+		col = math.floor((vim.o.columns - width) / 2),
+		row = math.floor((vim.o.lines - height) / 2),
+		style = "minimal",
+		border = "rounded",
+		title = title,
+		title_pos = "center",
+	}
+
+	local win = vim.api.nvim_open_win(buf, true, opts)
+	vim.api.nvim_win_set_option(win, "winhl", "NormalFloat:Normal,FloatBorder:Normal")
+
+	-- Close keymaps (works in both normal and the popup buffer)
+	local close = function()
+		if vim.api.nvim_win_is_valid(win) then
+			vim.api.nvim_win_close(win, true)
+		end
+	end
+	vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true })
+	vim.keymap.set("n", "q", close, { buffer = buf, silent = true })
+
+	return win
+end
+
 -- Optional: User command to reload if JSON changes
 vim.api.nvim_create_user_command("ReloadAbbrevJson", load_json_data, { desc = "Reload abbrev data from JSON" })
 
@@ -343,96 +393,20 @@ end
 M.list_one_letter_abbrevs = function()
 	local lines = {}
 	for abbrev, word in pairs(M.one_letter_roots) do
-		table.insert(lines, abbrev:upper() .. " → " .. word) -- Format as "AB → about"
+		table.insert(lines, abbrev:lower() .. " → " .. word) -- Format as "AB → about"
 	end
 	table.sort(lines) -- Alphabetical sort for readability
-
-	if #lines == 0 then
-		vim.notify("No one-letter root abbreviations found", vim.log.levels.WARN)
-		return
-	end
-
-	-- Create a buffer for the popup
-	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
-	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
-	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-	vim.api.nvim_buf_set_option(buf, "modifiable", false)
-
-	-- Calculate dimensions (e.g., 30% of window width/height)
-	local width = math.floor(vim.o.columns * 0.3)
-	local height = math.min(#lines + 2, math.floor(vim.o.lines * 0.3))
-	local opts = {
-		relative = "editor",
-		width = width,
-		height = height,
-		col = (vim.o.columns - width) / 2,
-		row = (vim.o.lines - height) / 2,
-		style = "minimal",
-		border = "rounded",
-		title = "One-Letter Root Abbreviations",
-		title_pos = "center",
-	}
-
-	-- Open the floating window
-	local win = vim.api.nvim_open_win(buf, true, opts)
-	vim.api.nvim_win_set_option(win, "winhl", "NormalFloat:Normal,FloatBorder:Normal")
-
-	-- Keymap to close the popup (Esc or q)
-	vim.keymap.set("n", "<Esc>", function()
-		vim.api.nvim_win_close(win, true)
-	end, { buffer = buf, silent = true })
-	vim.keymap.set("n", "q", function()
-		vim.api.nvim_win_close(win, true)
-	end, { buffer = buf, silent = true })
+	create_list_popup(lines, "One-Letter Abbreviations")
 end
 
 -- Function to list all two-letter root abbreviations in a popup
 M.list_two_letter_abbrevs = function()
 	local lines = {}
 	for abbrev, word in pairs(M.two_letter_roots) do
-		table.insert(lines, abbrev:upper() .. " → " .. word) -- Format as "AB → about"
+		table.insert(lines, abbrev:lower() .. " → " .. word) -- Format as "AB → about"
 	end
 	table.sort(lines) -- Alphabetical sort for readability
-
-	if #lines == 0 then
-		vim.notify("No two-letter root abbreviations found", vim.log.levels.WARN)
-		return
-	end
-
-	-- Create a buffer for the popup
-	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
-	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
-	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-	vim.api.nvim_buf_set_option(buf, "modifiable", false)
-
-	-- Calculate dimensions (e.g., 30% of window width/height)
-	local width = math.floor(vim.o.columns * 0.3)
-	local height = math.min(#lines + 2, math.floor(vim.o.lines * 0.3))
-	local opts = {
-		relative = "editor",
-		width = width,
-		height = height,
-		col = (vim.o.columns - width) / 2,
-		row = (vim.o.lines - height) / 2,
-		style = "minimal",
-		border = "rounded",
-		title = "Two-Letter Root Abbreviations",
-		title_pos = "center",
-	}
-
-	-- Open the floating window
-	local win = vim.api.nvim_open_win(buf, true, opts)
-	vim.api.nvim_win_set_option(win, "winhl", "NormalFloat:Normal,FloatBorder:Normal")
-
-	-- Keymap to close the popup (Esc or q)
-	vim.keymap.set("n", "<Esc>", function()
-		vim.api.nvim_win_close(win, true)
-	end, { buffer = buf, silent = true })
-	vim.keymap.set("n", "q", function()
-		vim.api.nvim_win_close(win, true)
-	end, { buffer = buf, silent = true })
+	create_list_popup(lines, "Two-Letter Abbreviations")
 end
 
 -- Function to list all prefix abbrevs in a popup
@@ -448,36 +422,7 @@ local function list_prefixes()
 		table.insert(lines, display_abbrev .. " -> " .. word)
 	end
 	table.sort(lines) -- Sort alphabetically for easier reading
-
-	local buf = vim.api.nvim_create_buf(false, true) -- Scratch buffer
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-	vim.api.nvim_buf_set_option(buf, "modifiable", false)
-	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe") -- Auto-delete on close
-
-	local width = math.min(50, vim.o.columns - 10) -- Dynamic width, max 50 cols
-	local height = math.min(#lines + 2, vim.o.lines - 10) -- Dynamic height with padding
-	local opts = {
-		style = "minimal",
-		relative = "editor",
-		width = width,
-		height = height,
-		row = math.floor((vim.o.lines - height) / 2),
-		col = math.floor((vim.o.columns - width) / 2),
-		border = "single", -- Clean border
-		title = "Prefix Abbreviations",
-		title_pos = "center",
-	}
-
-	local win = vim.api.nvim_open_win(buf, true, opts)
-	vim.api.nvim_win_set_option(win, "winhl", "Normal:NormalFloat,FloatBorder:FloatBorder") -- Subtle highlighting
-
-	-- Keymaps to close (consistent with your other lists)
-	vim.keymap.set("n", "<Esc>", function()
-		vim.api.nvim_win_close(win, true)
-	end, { buffer = buf, silent = true })
-	vim.keymap.set("n", "q", function()
-		vim.api.nvim_win_close(win, true)
-	end, { buffer = buf, silent = true })
+	create_list_popup(lines, "Prefix Abbreviations")
 end
 
 M.list_prefixes = list_prefixes -- Export for keymap access
