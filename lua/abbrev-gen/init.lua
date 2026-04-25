@@ -126,22 +126,22 @@ local function load_json_data(json_path)
 		M.prefixes[p.prefix_abbrev:lower()] = p.prefix_word
 	end
 	-- vim.notify("Loaded " .. vim.tbl_count(M.prefixes) .. " prefixes from JSON", vim.log.levels.INFO)
-
-	-- === RESTORED: Old powerful reverse expansion (root + suffix details) ===
+	-- === Enhanced: Return ALL possible root + suffix breakdowns ===
 	M.try_reverse = function(word)
 		if #word < 2 then
-			return nil
+			return {}
 		end
-		word = word:lower() -- Normalize for case-insensitive match
+		word = word:lower()
 
-		-- Match root + suffix
-		local remaining = word
+		local matches = {}
+
 		for _, entry in ipairs(M.json_data.roots or M.json_data) do
 			local root_word_lower = entry.root_word:lower()
-			if remaining:find(root_word_lower, 1, true) == 1 then
-				local remainder = remaining:sub(#root_word_lower + 1)
+			if word:find(root_word_lower, 1, true) == 1 then
+				local remainder = word:sub(#root_word_lower + 1)
 				local suffix_abbrevs = entry.suffix_abbrevs or {}
 				local suffix_words = entry.suffix_words or {}
+
 				for i, s_word in ipairs(suffix_words) do
 					if remainder == s_word:lower() then
 						local base_suffix = ""
@@ -151,63 +151,45 @@ local function load_json_data(json_path)
 								break
 							end
 						end
-						local base_form = entry.root_word .. base_suffix
-						local displayed_root = base_form
+
 						local root_abbrev = entry.root_abbrev
-						local suffix_abbrev = suffix_abbrevs[i]
-						local output = ""
-						output = output .. "root = " .. root_abbrev .. "_" .. displayed_root
+						local suffix_abbrev = suffix_abbrevs[i] or ""
+						local output = "root = " .. root_abbrev .. " -> " .. entry.root_word .. base_suffix
+
 						if suffix_abbrev ~= "" then
-							output = output .. ", suffix = " .. suffix_abbrev .. "_" .. s_word
+							output = output .. ", suffix = " .. suffix_abbrev .. " -> " .. s_word
 						end
-						return output
+
+						table.insert(matches, output)
 					end
 				end
 			end
 		end
 
-		return nil -- No match
+		return matches
 	end
 
 	-- Reverse lookup: Show rich abbreviation info using the restored try_reverse
 	M.reverse_lookup = function()
 		local word = vim.fn.expand("<cword>")
 		if word == "" then
-			vim.notify("No word under cursor", vim.log.levels.WARN)
+			matches = { "No word under cursor" }
+			M.create_list_popup(matches, "No word under cursor")
 			return
 		end
 
 		local matches = {}
 		local lower_word = word:lower()
 
-		-- First: Try the rich old reverse logic on the exact word
-		local rich_info = M.try_reverse(lower_word)
-		if rich_info then
-			table.insert(matches, rich_info)
-		end
-
-		-- Second: Fallback / additional matches from roots and prefixes (for partials)
-		-- for abbrev, root_word in pairs(M.roots or {}) do
-		-- 	if root_word:lower():find(lower_word, 1, true) then
-		-- 		local line = abbrev:upper() .. " → " .. root_word
-		-- 		if not vim.tbl_contains(matches, line) then
-		-- 			table.insert(matches, line)
-		-- 		end
-		-- 	end
-		-- end
-
-		for abbrev, prefix_word in pairs(M.prefixes or {}) do
-			if prefix_word:lower():find(lower_word, 1, true) then
-				local display = abbrev:sub(1, 1):lower() .. abbrev:sub(2, 2):upper()
-				local line = display .. " → " .. prefix_word
-				if not vim.tbl_contains(matches, line) then
-					table.insert(matches, line)
-				end
-			end
+		local rich_matches = M.try_reverse(lower_word) or {}
+		for _, info in ipairs(rich_matches) do
+			table.insert(matches, info)
 		end
 
 		if #matches == 0 then
 			matches = { "NO ABBREVIATIONS FOUND" }
+			M.create_list_popup(matches, "No Abbreviations for: " .. word)
+			return
 		end
 
 		table.sort(matches)
@@ -440,7 +422,7 @@ end
 M.list_one_letter_abbrevs = function()
 	local lines = {}
 	for abbrev, word in pairs(M.one_letter_roots) do
-		table.insert(lines, abbrev:lower() .. " → " .. word) -- Format as "AB → about"
+		table.insert(lines, abbrev:lower() .. " -> " .. word) -- Format as "AB → about"
 	end
 	table.sort(lines) -- Alphabetical sort for readability
 	M.create_list_popup(lines, "One-Letter Abbreviations")
@@ -450,7 +432,7 @@ end
 M.list_two_letter_abbrevs = function()
 	local lines = {}
 	for abbrev, word in pairs(M.two_letter_roots) do
-		table.insert(lines, abbrev:lower() .. " → " .. word) -- Format as "AB → about"
+		table.insert(lines, abbrev:lower() .. " -> " .. word) -- Format as "AB → about"
 	end
 	table.sort(lines) -- Alphabetical sort for readability
 	M.create_list_popup(lines, "Two-Letter Abbreviations")
