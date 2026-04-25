@@ -60,6 +60,7 @@ end
 -- Single shared table for lookups (used by try_expand and future completion)
 M.abbrevs = {}
 M.roots = {}
+M.numbered_abbrevs = {}
 
 -- Load and parse JSON once on plugin init (expanded abbrev -> word)
 local function load_json_data(json_path)
@@ -258,6 +259,22 @@ local function load_json_data(json_path)
 			M.two_letter_roots[root_abbrev] = base_word
 		end
 	end
+
+	-- Build list of abbreviations with numbers
+	M.numbered_abbrevs = {}
+	for _, entry in ipairs(data.roots or {}) do
+		local root_abbrev = entry.root_abbrev:lower()
+		if root_abbrev:find("%d") then
+			local suffix_abbrevs = entry.suffix_abbrevs or {}
+			local suffix_words = entry.suffix_words or {}
+			for i, s_abbrev in ipairs(suffix_abbrevs) do
+				local full_abbrev = root_abbrev .. s_abbrev:lower()
+				local s_word = suffix_words[i] or ""
+				local full_word = entry.root_word .. s_word
+				M.numbered_abbrevs[full_abbrev] = full_word
+			end
+		end
+	end
 end
 
 -- Optional: User command to reload if JSON changes
@@ -438,6 +455,15 @@ M.list_two_letter_abbrevs = function()
 	M.create_list_popup(lines, "Two-Letter Abbreviations")
 end
 
+M.list_numbered_abbrevs = function()
+	local lines = {}
+	for abbrev, word in pairs(M.numbered_abbrevs) do
+		table.insert(lines, abbrev:lower() .. " -> " .. word)
+	end
+	table.sort(lines)
+	M.create_list_popup(lines, "Multi-word Abbreviations")
+end
+
 -- Function to list all prefix abbrevs in a popup
 local function list_prefixes()
 	if vim.tbl_isempty(M.prefixes) then
@@ -488,6 +514,13 @@ function M.setup(opts)
 					"<leader>2",
 					M.list_two_letter_abbrevs,
 					{ buffer = bufnr, desc = "Show all two-letter root abbrevs" }
+				)
+
+				keymap.set(
+					"n",
+					"<leader>3",
+					M.list_numbered_abbrevs,
+					{ buffer = bufnr, desc = "Show all multi-word abbreviations" }
 				)
 
 				keymap.set("n", "<leader>p", M.list_prefixes, { buffer = bufnr, desc = "Show all prefix abbrevs" })
