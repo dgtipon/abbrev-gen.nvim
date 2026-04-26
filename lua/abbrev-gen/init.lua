@@ -260,19 +260,13 @@ local function load_json_data(json_path)
 		end
 	end
 
-	-- Build list of abbreviations with numbers
+	-- Build list of abbreviations with numbers, root only
 	M.numbered_abbrevs = {}
 	for _, entry in ipairs(data.roots or {}) do
 		local root_abbrev = entry.root_abbrev:lower()
 		if root_abbrev:find("%d") then
-			local suffix_abbrevs = entry.suffix_abbrevs or {}
-			local suffix_words = entry.suffix_words or {}
-			for i, s_abbrev in ipairs(suffix_abbrevs) do
-				local full_abbrev = root_abbrev .. s_abbrev:lower()
-				local s_word = suffix_words[i] or ""
-				local full_word = entry.root_word .. s_word
-				M.numbered_abbrevs[full_abbrev] = full_word
-			end
+			local base_word = entry.root_word .. (entry.suffix_words[1] or "")
+			M.numbered_abbrevs[root_abbrev] = base_word
 		end
 	end
 end
@@ -461,7 +455,7 @@ M.list_numbered_abbrevs = function()
 		table.insert(lines, abbrev:lower() .. " -> " .. word)
 	end
 	table.sort(lines)
-	M.create_list_popup(lines, "Multi-word Abbreviations")
+	M.create_list_popup(lines, "Abbreviations with numbers - Base only")
 end
 
 -- Function to list all prefix abbrevs in a popup

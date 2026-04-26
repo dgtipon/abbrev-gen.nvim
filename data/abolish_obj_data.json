@@ -317,12 +317,6 @@
         "by",
         "bt",
         "bts",
-        "n",
-        "ns",
-        "nd",
-        "ng",
-        "nl",
-        "nls",
         "r",
         "rs"
       ],
@@ -337,12 +331,6 @@
         "ibly",
         "ibility",
         "ibilities",
-        "ion",
-        "ions",
-        "ioned",
-        "ioning",
-        "ional",
-        "ionals",
         "or",
         "ors"
       ]
@@ -4712,7 +4700,7 @@
       "suffix_words": ["e", "es", "ed"]
     },
     {
-      "root_abbrev": "crmv",
+      "root_abbrev": "crcm",
       "suffix_abbrevs": [
         "",
         "s",
@@ -11683,7 +11671,7 @@
       "suffix_words": ["y", "ies", "iful", "ifully"]
     },
     {
-      "root_abbrev": "dya",
+      "root_abbrev": "dy",
       "suffix_abbrevs": ["", "s", "l", "ls", "y"],
       "root_word": "dynamic",
       "suffix_words": ["", "s", "al", "als", "ally"]
@@ -16884,7 +16872,7 @@
       "suffix_words": [""]
     },
     {
-      "root_abbrev": "hmn",
+      "root_abbrev": "hu",
       "suffix_abbrevs": ["", "s", "e", "y", "ty"],
       "root_word": "human",
       "suffix_words": ["", "s", "e", "ly", "ity"]
@@ -24774,35 +24762,9 @@
     },
     {
       "root_abbrev": "zcs",
-      "suffix_abbrevs": [
-        "",
-        "s",
-        "d",
-        "g",
-        "n",
-        "ns",
-        "r",
-        "rs",
-        "y",
-        "ss",
-        "sss",
-        "t"
-      ],
+      "suffix_abbrevs": ["", "n", "ns", "y", "ss", "sss", "t"],
       "root_word": "precis",
-      "suffix_words": [
-        "e",
-        "es",
-        "ed",
-        "ing",
-        "ion",
-        "ions",
-        "er",
-        "ers",
-        "ely",
-        "eness",
-        "enesses",
-        "est"
-      ]
+      "suffix_words": ["e", "ion", "ions", "ely", "eness", "enesses", "est"]
     },
     {
       "root_abbrev": "zdt",
@@ -24811,7 +24773,7 @@
       "suffix_words": ["", "s", "y"]
     },
     {
-      "root_abbrev": "pp",
+      "root_abbrev": "pp1",
       "suffix_abbrevs": ["", "s"],
       "root_word": "predator_prey",
       "suffix_words": ["", "s"]
@@ -31308,7 +31270,7 @@
       ]
     },
     {
-      "root_abbrev": "spo",
+      "root_abbrev": "sps",
       "suffix_abbrevs": ["", "s", "d", "g", "p", "ps"],
       "root_word": "sponsor",
       "suffix_words": ["", "s", "ed", "ing", "ship", "ships"]
@@ -32319,7 +32281,7 @@
       ]
     },
     {
-      "root_abbrev": "sps",
+      "root_abbrev": "spp",
       "suffix_abbrevs": [
         "",
         "s",
@@ -32355,7 +32317,7 @@
       ]
     },
     {
-      "root_abbrev": "szs",
+      "root_abbrev": "spz",
       "suffix_abbrevs": [
         "",
         "s",
