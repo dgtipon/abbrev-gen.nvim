@@ -229,13 +229,7 @@ local function load_json_data(json_path)
 	for _, entry in ipairs(data.roots or {}) do
 		local root_abbrev = entry.root_abbrev:lower()
 		if #root_abbrev == 1 then
-			local base_word = entry.root_word
-			local suffix_abbrevs = entry.suffix_abbrevs or {}
-			local suffix_words = entry.suffix_words or {}
-			local empty_index = vim.fn.index(suffix_abbrevs, "") + 1 -- 1-based; 0 if not found
-			if empty_index > 0 then
-				base_word = base_word .. (suffix_words[empty_index] or "")
-			end
+			local base_word = entry.root_word .. (entry.suffix_words[1] or "")
 			M.one_letter_roots[root_abbrev] = base_word
 		end
 	end
@@ -249,13 +243,7 @@ local function load_json_data(json_path)
 	for _, entry in ipairs(data.roots or {}) do
 		local root_abbrev = entry.root_abbrev:lower()
 		if #root_abbrev == 2 then
-			local base_word = entry.root_word
-			local suffix_abbrevs = entry.suffix_abbrevs or {}
-			local suffix_words = entry.suffix_words or {}
-			local empty_index = vim.fn.index(suffix_abbrevs, "") + 1 -- 1-based; 0 if not found
-			if empty_index > 0 then
-				base_word = base_word .. (suffix_words[empty_index] or "")
-			end
+			local base_word = entry.root_word .. (entry.suffix_words[1] or "")
 			M.two_letter_roots[root_abbrev] = base_word
 		end
 	end
